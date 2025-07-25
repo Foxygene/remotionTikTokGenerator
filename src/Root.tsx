@@ -1,9 +1,11 @@
 import "./index.css";
-import { Composition } from "remotion";
-import { JobProfile, jobSchema } from "./JobProfile/JobProfile";
+import { Composition, getStaticFiles } from "remotion";
+import { jobSchema } from "./JobProfile/JobProfile";
 import { z } from "zod";
+import { Main } from "./Main/Main";
 
 type Job = z.infer<typeof jobSchema>;
+
 const job: Job = {
   Id: 711,
   Title: "Office Assistant",
@@ -18,25 +20,46 @@ const job: Job = {
   jobType: "Full-time",
 };
 // Each <Composition> is an entry in the sidebar!
+const videoFiles = getStaticFiles().filter((file) => file.name.endsWith("mp4"));
+const randomVideo = videoFiles[Math.floor(Math.random() * videoFiles.length)];
 
 export const RemotionRoot: React.FC = () => {
   return (
     <>
-      <Composition
-        // You can take the "id" to render a video:
-        // npx remotion render HelloWorld
+      {/* <Composition
+        id="JobIntro"
+        component={JobIntro}
+        durationInFrames={150}
+        fps={30}
+        width={1080}
+        height={1920}
+      /> */}
+
+      {/* <Composition
         id="JobProfile"
         component={JobProfile}
         durationInFrames={150}
         fps={30}
         width={1080}
         height={1920}
-        // You can override these props for each render:
-        // https://www.remotion.dev/docs/parametrized-rendering
-        schema={jobSchema}
-        defaultProps={job}
-      />
+        schema={z.object({
+          job: jobSchema,
+        })}
+        defaultProps={{ job: job }}
+      /> */}
 
+      <Composition
+        id="Main"
+        component={Main}
+        durationInFrames={240}
+        fps={30}
+        width={1080}
+        height={1920}
+        schema={z.object({
+          job: jobSchema,
+        })}
+        defaultProps={{ job: job, randomVideo: randomVideo }}
+      />
       {/* Mount any React component to make it show up in the sidebar and work on it individually! */}
       {/* <Composition
         id="OnlyLogo"

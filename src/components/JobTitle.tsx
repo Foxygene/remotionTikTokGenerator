@@ -1,31 +1,19 @@
-import React from "react";
 import { spring, useCurrentFrame, useVideoConfig } from "remotion";
 
-const title: React.CSSProperties = {
-  fontSize: 100,
-  textAlign: "center",
+type JobTitleProps = {
+  titleText: string;
 };
 
-const word: React.CSSProperties = {
-  marginLeft: 10,
-  marginRight: 10,
-  display: "inline-block",
-};
-
-export const JobTitle: React.FC<{
-  readonly titleText: string;
-  readonly titleColor: string;
-}> = ({ titleText, titleColor }) => {
+export const JobTitle = ({ titleText }: JobTitleProps) => {
   const videoConfig = useVideoConfig();
   const frame = useCurrentFrame();
 
   const words = titleText.split(" ");
 
   return (
-    <h1 style={title}>
+    <h1 className="text-8xl">
       {words.map((t, i) => {
         const delay = i * 5;
-
         const scale = spring({
           fps: videoConfig.fps,
           frame: frame - delay,
@@ -37,11 +25,8 @@ export const JobTitle: React.FC<{
         return (
           <span
             key={t}
-            style={{
-              ...word,
-              color: titleColor,
-              transform: `scale(${scale})`,
-            }}
+            className="inline-block mx-2.5"
+            style={{ transform: `scale(${scale})` }}
           >
             {t}
           </span>
