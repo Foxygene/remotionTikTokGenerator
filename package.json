@@ -7,13 +7,13 @@
   "private": true,
   "dependencies": {
     "@remotion/cli": "4.0.327",
+    "@remotion/tailwind-v4": "4.0.327",
     "@remotion/zod-types": "4.0.327",
     "react": "19.0.0",
     "react-dom": "19.0.0",
     "remotion": "4.0.327",
-    "zod": "3.22.3",
-    "@remotion/tailwind-v4": "4.0.327",
-    "tailwindcss": "4.0.0"
+    "tailwindcss": "^4.1.11",
+    "zod": "3.22.3"
   },
   "devDependencies": {
     "@remotion/eslint-config-flat": "4.0.327",
