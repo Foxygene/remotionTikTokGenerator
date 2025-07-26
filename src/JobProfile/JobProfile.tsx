@@ -10,7 +10,7 @@ import {
 } from "remotion";
 import { z } from "zod";
 import type { CSSProperties } from "react";
-import { JobTitle } from "../components/JobTitle";
+import { TitleText } from "../components/TitleText";
 import { Info } from "../components/Info";
 
 export const jobSchema = z.object({
@@ -29,6 +29,8 @@ export const jobSchema = z.object({
 const fontStyle: CSSProperties = {
   textShadow:
     "0px 10px 20px rgb(0 0 0 / 0.1), 0px 30px 20px rgb(0 0 0 / 0.1), 0px 40px 80px rgb(0 0 0 / 0.1), 0px 80px 160px rgb(0 0 0 / 0.1)",
+  // Ajout de will-change pour optimiser les transitions
+  willChange: "opacity",
 };
 
 export const JobProfile = ({
@@ -41,16 +43,6 @@ export const JobProfile = ({
   const frame = useCurrentFrame();
   const { durationInFrames, fps } = useVideoConfig();
 
-  const fadeInStyle = interpolate(
-    frame,
-    [durationInFrames - 25, durationInFrames - 15],
-    [1, 0],
-    {
-      extrapolateLeft: "clamp",
-      extrapolateRight: "clamp",
-    },
-  );
-
   const infoItems = [
     { label: "Salary", value: job.salary },
     { label: "Job Type", value: job.jobType },
@@ -58,21 +50,31 @@ export const JobProfile = ({
     { label: "Job Description", value: job.jobDescription },
   ];
 
-  const baseDelay = 10;
-  const delayStep = 10;
+  // 🚀 OPTIMISATION: Timing plus espacé pour réduire les calculs simultanés
+  const baseDelay = 8; // Réduit de 15 à 8 pour x2 plus rapide
+  const delayStep = 8; // Réduit de 15 à 8 pour x2 plus rapide
 
-  // Precompute all spring values for infoItems
-  const springVals = infoItems.map((_, idx) => {
+  // 🚀 OPTIMISATION: Précalculer TOUS les springs en dehors du rendu
+  // avec une configuration plus performante
+  const springValues = infoItems.map((_, idx) => {
     const delay = baseDelay + idx * delayStep;
     return spring({
       fps,
       frame: Math.max(0, frame - delay),
       config: {
-        damping: 12,
-        mass: 0.8,
-        stiffness: 120,
+        // 🚀 SMOOTH ANIMATIONS: Config spring plus smooth sans bounce
+        damping: 15, // Augmenté pour réduire le bounce
+        mass: 1, // Valeur équilibrée pour un mouvement fluide
+        stiffness: 80, // Réduit pour une animation plus douce
       },
     });
+  });
+
+  // 🚀 OPTIMISATION: Précalculer toutes les transformations avec memoization
+  const slideTransforms = springValues.map((springVal) => {
+    // Utiliser transform3d au lieu de translateX pour l'accélération GPU
+    const slideX = -100 + 100 * springVal;
+    return `translate3d(${slideX}%, 0, 0)`;
   });
 
   return (
@@ -80,43 +82,70 @@ export const JobProfile = ({
       <AbsoluteFill>
         <OffthreadVideo src={videoBg.src} />
       </AbsoluteFill>
-      <div
-        className="flex flex-col p-5 gap-10 text-white font-bold pt-64"
-        style={fontStyle}
-      >
-        <Sequence
-          name="JobTitle"
-          from={0}
-          style={{ position: "relative" }}
-          className="py-10 justify-center text-white font-bold rounded-2xl bg-opacity-20 backdrop-blur-3xl shadow-2xl"
+      {/* Contenu principal - dans AbsoluteFill pour remplir toute la composition */}
+      <AbsoluteFill>
+        <div
+          className="flex flex-col p-5 gap-10 text-white font-bold pt-64"
+          style={{
+            ...fontStyle,
+            // 🚀 OPTIMISATION: Retirer l'opacity d'ici pour éviter la double opacity
+            // L'opacity est maintenant sur la vidéo de fond
+          }}
         >
-          <div style={{ opacity: fadeInStyle }}>
-            <JobTitle titleText={job.Title} />
-          </div>
-        </Sequence>
-        {/* ---------------------------------------------- */}
-        {infoItems.map((item, idx) => {
-          const delay = baseDelay + idx * delayStep;
-          const springVal = springVals[idx];
-          const slideIn = -100 + 100 * springVal;
+          <Sequence
+            name="JobTitle"
+            from={0}
+            durationInFrames={durationInFrames} // Durée complète de la composition, indépendante des delays
+            style={{
+              position: "relative",
+              willChange: "transform, opacity",
+            }}
+            className="py-10 justify-center text-white font-bold rounded-2xl bg-opacity-20 backdrop-blur-3xl shadow-2xl"
+          >
+            <TitleText titleText={job.Title} />
+          </Sequence>
+          {/* ---------------------------------------------- */}
+          {infoItems.map((item, idx) => {
+            const delay = baseDelay + idx * delayStep;
+            // 🚀 OPTIMISATION: Utiliser les transformations précalculées
+            const slideTransform = slideTransforms[idx];
 
-          return (
-            <Sequence
-              key={item.label + item.value}
-              name={item.label}
-              from={delay}
-              style={{
-                position: "relative",
-                opacity: fadeInStyle,
-                transform: `translateX(${slideIn}%)`,
-                willChange: "transform, opacity",
-              }}
-            >
-              <Info value={item.value} />
-            </Sequence>
-          );
-        })}
-      </div>
+            // 🚀 OPTIMISATION: Ne rendre que si l'animation a commencé pour économiser les ressources
+            if (frame < delay) {
+              return null;
+            }
+
+            return (
+              <Sequence
+                key={item.label + item.value}
+                name={item.label}
+                from={delay}
+                style={{
+                  position: "relative",
+                  // 🚀 OPTIMISATION: Utiliser transform3d pour l'accélération GPU maximale
+                  transform: slideTransform,
+                  // 🚀 OPTIMISATION: will-change optimisé seulement pour transform
+                  willChange: "transform",
+                  // Optimisations CSS critiques pour les performances
+                  backfaceVisibility: "hidden",
+                  transformStyle: "preserve-3d",
+                  // 🚀 OPTIMISATION: CSS Containment pour éviter les re-layouts
+                  contain: "layout style paint",
+                  // 🚀 OPTIMISATION: Isolation pour réduire les repaints
+                  isolation: "isolate",
+                }}
+                className="slide-animation"
+              >
+                <Info
+                  value={item.value}
+                  isAlternate={idx % 2 === 1}
+                  isSalary={item.label === "Salary"}
+                />
+              </Sequence>
+            );
+          })}
+        </div>
+      </AbsoluteFill>
     </>
   );
 };

@@ -1,1 +1,112 @@
 @import "tailwindcss";
+@import url("https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,300;0,400;0,500;0,700;0,900;1,300;1,400;1,500;1,700;1,900&display=swap");
+
+/* 🚀 POLICE ROBOTO: Configuration des styles de texte */
+.roboto-title {
+  font-family: "Roboto", sans-serif;
+  font-weight: 700; /* Bold pour les titres */
+  font-style: normal;
+}
+
+.roboto-info {
+  font-family: "Roboto", sans-serif;
+  font-weight: 400; /* Normal pour les infos */
+  font-style: normal;
+}
+
+.roboto-salary {
+  font-family: "Roboto", sans-serif;
+  font-weight: 400; /* Normal weight mais italique pour salaire */
+  font-style: italic;
+}
+
+/* 🚀 OPTIMISATIONS GLOBALES POUR LES PERFORMANCES REMOTION */
+
+/* Optimisation du GPU pour toutes les transformations */
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Optimisations spécifiques pour les éléments animés */
+.animated-element {
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+  perspective: 1000px;
+  will-change: transform, opacity;
+}
+
+/* Optimisation pour les vidéos de fond */
+video {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* Optimisation pour les éléments avec backdrop-blur */
+.backdrop-blur-3xl {
+  transform: translateZ(0);
+  will-change: backdrop-filter;
+}
+
+/* Force l'accélération matérielle pour les transformations critiques */
+.gpu-accelerated {
+  transform: translateZ(0);
+  will-change: transform;
+  backface-visibility: hidden;
+  /* 🚀 OPTIMISATION: CSS Containment pour éviter les re-layouts */
+  contain: layout style paint;
+}
+
+/* Optimisation pour les séquences Remotion */
+[data-remotion-sequence] {
+  contain: layout style paint;
+  transform: translateZ(0);
+}
+
+/* 🚀 OPTIMISATION: Spécifique pour les animations de slide */
+.slide-animation {
+  /* Force l'utilisation du GPU pour les transformations */
+  transform: translate3d(0, 0, 0);
+  will-change: transform;
+  backface-visibility: hidden;
+  /* Isolation pour éviter les repaints des éléments parents */
+  isolation: isolate;
+  /* Containment pour limiter les recalculs de layout */
+  contain: layout style paint;
+}
+
+/* 🚀 OPTIMISATION: Améliorer les performances des backgrounds Tailwind */
+.bg-sky-300,
+.bg-pink-300 {
+  /* Force l'accélération GPU pour les couleurs */
+  transform: translateZ(0);
+  will-change: background-color;
+  /* Éviter les repaints lors des animations */
+  backface-visibility: hidden;
+}
+
+/* 🚀 OPTIMISATION: Améliorer les performances des rounded corners */
+.rounded-2xl {
+  /* Optimiser le rendu des border-radius */
+  transform: translateZ(0);
+  /* Isolation pour éviter les repaints */
+  isolation: isolate;
+}
+
+/* 🚀 FIX LAYOUT SHIFT: Optimisations spécifiques pour les titres animés */
+.text-8xl {
+  /* Éviter les layout shifts sur les gros textes */
+  contain: layout style;
+  /* Assurer un rendu stable */
+  text-rendering: optimizeSpeed;
+  /* Éviter les reflows de police */
+  font-display: block;
+}
+
+/* 🚀 FIX LAYOUT SHIFT: Pour tous les éléments avec transform scale */
+[style*="scale"] {
+  /* Forcer la réservation d'espace */
+  transform-box: border-box;
+  /* Éviter les reflows */
+  contain: layout;
+}

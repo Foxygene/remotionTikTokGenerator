@@ -1,35 +1,50 @@
 {
   "name": "remotionTikTokGenerator",
   "version": "1.0.0",
-  "description": "My Remotion video",
-  "repository": {},
-  "license": "UNLICENSED",
-  "private": true,
-  "dependencies": {
-    "@remotion/cli": "4.0.327",
-    "@remotion/tailwind-v4": "4.0.327",
-    "@remotion/zod-types": "4.0.327",
-    "react": "19.0.0",
-    "react-dom": "19.0.0",
-    "remotion": "4.0.327",
-    "tailwindcss": "^4.1.11",
-    "zod": "3.22.3"
-  },
-  "devDependencies": {
-    "@remotion/eslint-config-flat": "4.0.327",
-    "@types/react": "19.0.0",
-    "@types/web": "0.0.166",
-    "eslint": "9.19.0",
-    "prettier": "3.6.0",
-    "typescript": "5.8.2"
-  },
+  "description": "",
+  "main": "src/index.ts",
   "scripts": {
     "dev": "remotion studio",
-    "build": "remotion bundle",
+    "build": "remotion render Main out/Main.mp4",
+    "build-unique": "remotion render Main out/TikTok-$(date +%Y%m%d-%H%M%S).mp4",
     "upgrade": "remotion upgrade",
-    "lint": "eslint src && tsc"
+    "test": "eslint src --ext ts,tsx,js,jsx && tsc --noEmit",
+    "render-optimized": "remotion render Main out/Main.mp4 --concurrency=1 --log=verbose",
+    "render-optimized-unique": "remotion render Main out/TikTok-$(date +%Y%m%d-%H%M%S).mp4 --concurrency=1 --log=verbose",
+    "render-safe": "remotion render Main out/Main.mp4 --concurrency=1 --scale=0.8 --log=verbose",
+    "render-safe-unique": "remotion render Main out/TikTok-$(date +%Y%m%d-%H%M%S).mp4 --concurrency=1 --scale=0.8 --log=verbose",
+    "generate": "node generate-video.js",
+    "generate-safe": "node generate-video.js --safe",
+    "generate-optimized": "node generate-video.js --optimized",
+    "benchmark": "remotion benchmark",
+    "check-videos": "ls -lah public/video/ | grep -E '(hd_1080_1920|uhd_2160_3840)'",
+    "test-html-decode": "npx ts-node src/utils/htmlDecode.test.ts"
   },
-  "sideEffects": [
-    "*.css"
-  ]
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/remotion-dev/template-helloworld"
+  },
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@remotion/cli": "^4.0.212",
+    "@remotion/eslint-config": "^4.0.212",
+    "@remotion/tailwind-v4": "^4.0.212",
+    "@types/node": "^22.7.7",
+    "@types/react": "^18.0.26",
+    "@types/web": "^0.0.86",
+    "eslint": "^8.43.0",
+    "prettier": "^2.8.8",
+    "typescript": "^4.9.4"
+  },
+  "dependencies": {
+    "@remotion/layout-utils": "^4.0.327",
+    "@remotion/media-parser": "^4.0.212",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0",
+    "remotion": "^4.0.212",
+    "tailwindcss": "^4.0.0-beta.5",
+    "zod": "^3.21.4"
+  },
+  "packageManager": "npm@10.2.4"
 }
