@@ -17,7 +17,7 @@ export const Main = (props: {
 
       <Series>
         {/* JobIntro en premier */}
-        <Series.Sequence durationInFrames={120}>
+        <Series.Sequence durationInFrames={150}>
           <JobIntro
             videoBg={props.randomVideos[0]}
             jobs={props.jobs.slice(0, 3).map((job) => ({
@@ -29,7 +29,7 @@ export const Main = (props: {
 
         {/* 🚀 NOUVEAU: 3 JobProfile séquences avec jobs et vidéos uniques */}
         {props.jobs.map((job, index) => (
-          <Series.Sequence key={job.Id || index} durationInFrames={120}>
+          <Series.Sequence key={job.Id || index} durationInFrames={450}>
             <div>
               <JobProfile
                 videoBg={props.randomVideos[index] || props.randomVideos[0]}
@@ -40,7 +40,7 @@ export const Main = (props: {
         ))}
 
         {/* JobOutro en final */}
-        <Series.Sequence durationInFrames={120}>
+        <Series.Sequence durationInFrames={450}>
           <JobOutro
             videoBg={
               props.randomVideos[props.randomVideos.length - 1] ||

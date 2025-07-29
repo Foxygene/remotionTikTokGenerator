@@ -30,35 +30,45 @@ const allVideoFiles = getStaticFiles().filter((file) =>
   file.name.endsWith("mp4")
 );
 
-// 🚀 FIX SIGKILL: Filtrer les vidéos pour privilégier les HD (plus légères)
-// au lieu des UHD 4K (trop lourdes pour la mémoire)
+// 🚀 TOUTES LES VIDÉOS: Utiliser les 11 vidéos disponibles sans filtre
 const getOptimizedVideoFiles = () => {
-  // Priorité 1: Vidéos HD (1080p) - plus légères
-  const hdVideos = allVideoFiles.filter(
+  // Prendre TOUTES les vidéos disponibles
+  const allVideos = allVideoFiles;
+
+  // Catégorisation pour information (logs)
+  const hdVideos = allVideos.filter(
     (file) =>
       file.name.includes("hd_1080_1920") || file.name.includes("_1080_1920_")
   );
 
-  // Priorité 2: Si pas assez de HD, prendre quelques UHD légères (< 20MB estimé)
-  const lightUhdVideos = allVideoFiles.filter(
-    (file) =>
-      file.name.includes("uhd_2160_3840") &&
-      (file.name.includes("25fps") || file.name.includes("24fps")) // Éviter 60fps
+  const uhd3840Videos = allVideos.filter((file) =>
+    file.name.includes("uhd_2160_3840")
   );
 
-  // Combiner HD + UHD légères, privilégier HD
-  const optimizedVideos = [...hdVideos, ...lightUhdVideos.slice(0, 2)];
+  const uhd4096Videos = allVideos.filter((file) =>
+    file.name.includes("uhd_2160_4096")
+  );
 
-  return optimizedVideos.length > 0
-    ? optimizedVideos
-    : allVideoFiles.slice(0, 5);
+  console.log(`📹 TOUTES LES VIDÉOS UTILISÉES:`);
+  console.log(`📹 Total disponible: ${allVideos.length}`);
+  console.log(`📹 HD (1080p): ${hdVideos.length} vidéos`);
+  console.log(`📹 UHD 3840: ${uhd3840Videos.length} vidéos`);
+  console.log(`📹 UHD 4096: ${uhd4096Videos.length} vidéos`);
+
+  return allVideos;
 };
 
 const videoFiles = getOptimizedVideoFiles();
 
-// 🚀 NOUVEAU: Fonction pour récupérer 3 vidéos random uniques (optimisées)
+// 🚀 OPTIMISÉ: Fonction pour récupérer des vidéos random uniques avec équilibrage
 const getRandomVideos = (count: number): StaticFile[] => {
-  const shuffled = [...videoFiles].sort(() => 0.5 - Math.random());
+  // Utiliser un mélange de Fisher-Yates pour une meilleure randomisation
+  const shuffled = [...videoFiles];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+
   // 🚀 FIX: Garantir l'unicité - utiliser Set pour éviter les doublons
   const uniqueVideos = Array.from(new Set(shuffled.map((v) => v.name)))
     .map((name) => shuffled.find((v) => v.name === name)!)
@@ -70,6 +80,11 @@ const getRandomVideos = (count: number): StaticFile[] => {
     const remainingVideos = videoFiles.filter((v) => !usedNames.has(v.name));
     uniqueVideos.push(...remainingVideos.slice(0, count - uniqueVideos.length));
   }
+
+  console.log(
+    `📹 Vidéos sélectionnées (${uniqueVideos.length}/${count}):`,
+    uniqueVideos.map((v) => v.name)
+  );
 
   return uniqueVideos;
 };
@@ -117,8 +132,8 @@ export const RemotionRoot: React.FC = () => {
         id="Main"
         component={Main}
         // 🚀 NOUVEAU: Durée ajustée pour JobIntro + 3 JobProfiles + JobOutro
-        // JobIntro: 120 + 3 JobProfiles: 360 + JobOutro: 120 = 600 frames
-        durationInFrames={600}
+        // JobIntro: 150 (5s) + 3 JobProfiles: 1350 (45s) + JobOutro: 450 (15s) = 1950 frames
+        durationInFrames={1950}
         fps={30}
         width={1080}
         height={1920}
