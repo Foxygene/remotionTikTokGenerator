@@ -14,13 +14,13 @@ import type { CSSProperties } from "react";
 import { Info } from "../components/Info";
 import { Today } from "../components/Date";
 
-// Schema pour un job simplifié (titre + salaire)
-export const jobIntroSchema = z.object({
+// Schema pour un spot simplifié (nom + coût)
+export const spotIntroSchema = z.object({
   title: z.string(),
   salary: z.string(),
 });
 
-type JobIntroData = z.infer<typeof jobIntroSchema>;
+type SpotIntroData = z.infer<typeof spotIntroSchema>;
 
 const fontStyle: CSSProperties = {
   textShadow:
@@ -28,22 +28,22 @@ const fontStyle: CSSProperties = {
   willChange: "opacity",
 };
 
-export const JobIntro = ({
+export const SpotIntro = ({
   videoBg,
-  jobs,
+  spots,
 }: {
   videoBg: StaticFile;
-  jobs: JobIntroData[];
+  spots: SpotIntroData[];
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
-  // 🚀 ANIMATION: Slide-in du sticker depuis le haut
+  // Animation: Slide-in du sticker depuis le haut
   const stickerSlideSpring = spring({
     fps,
     frame: frame,
     config: {
-      // 🚀 SMOOTH ANIMATIONS: Config spring plus smooth sans bounce
+      // Config spring plus smooth sans bounce
       damping: 15, // Augmenté pour réduire le bounce
       mass: 1, // Valeur équilibrée pour un mouvement fluide
       stiffness: 80, // Réduit pour une animation plus douce
@@ -54,33 +54,33 @@ export const JobIntro = ({
   const stickerSlideY = -200 + 200 * stickerSlideSpring;
   const stickerTransform = `translate3d(0, ${stickerSlideY}px, 0)`;
 
-  // 🚀 TIMING: Délais pour les éléments
+  // TIMING: Délais pour les éléments
   const dateDelay = 20; // Date apparaît après le sticker
   const infoBaseDelay = 35; // Premier Info après la date
   const infoDelayStep = 8; // Délai entre chaque Info
 
-  // 🚀 OPTIMISATION: Précalculer les springs pour les Info
-  const infoSpringValues = jobs.flatMap((_, jobIdx) => [
-    // Spring pour le titre du job
+  // OPTIMISATION: Précalculer les springs pour les Info
+  const infoSpringValues = spots.flatMap((_, spotIdx) => [
+    // Spring pour le titre du spot
     spring({
       fps,
-      frame: Math.max(0, frame - (infoBaseDelay + jobIdx * 2 * infoDelayStep)),
+      frame: Math.max(0, frame - (infoBaseDelay + spotIdx * 2 * infoDelayStep)),
       config: {
-        // 🚀 SMOOTH ANIMATIONS: Config spring plus smooth sans bounce
+        // Config spring plus smooth sans bounce
         damping: 15, // Augmenté pour réduire le bounce
         mass: 1, // Valeur équilibrée pour un mouvement fluide
         stiffness: 80, // Réduit pour une animation plus douce
       },
     }),
-    // Spring pour le salaire du job
+    // Spring pour le coût du spot
     spring({
       fps,
       frame: Math.max(
         0,
-        frame - (infoBaseDelay + (jobIdx * 2 + 1) * infoDelayStep)
+        frame - (infoBaseDelay + (spotIdx * 2 + 1) * infoDelayStep)
       ),
       config: {
-        // 🚀 SMOOTH ANIMATIONS: Config spring plus smooth sans bounce
+        // Config spring plus smooth sans bounce
         damping: 15, // Augmenté pour réduire le bounce
         mass: 1, // Valeur équilibrée pour un mouvement fluide
         stiffness: 80, // Réduit pour une animation plus douce
@@ -88,31 +88,44 @@ export const JobIntro = ({
     }),
   ]);
 
-  // 🚀 OPTIMISATION: Précalculer les transforms pour les Info
+  // OPTIMISATION: Précalculer les transforms pour les Info
   const infoSlideTransforms = infoSpringValues.map((springVal) => {
     const slideX = -100 + 100 * springVal;
     return `translate3d(${slideX}%, 0, 0)`;
   });
 
+  const convertToStars = (value: string): string => {
+    // Si c'est déjà au format "rating r3", extraire le nombre
+    if (value.includes("rating r")) {
+      const match = value.match(/r(\d+)/);
+      if (match) {
+        const numStars = parseInt(match[1]);
+        return "★".repeat(Math.min(Math.max(numStars, 0), 5));
+      }
+    }
+
+    // Si c'est un format comme "8.5/10", convertir
+    if (value.includes("/10")) {
+      const numValue = parseFloat(value.replace("/10", ""));
+      const stars = Math.round(numValue / 2); // Convertir sur 5 étoiles
+      return "★".repeat(Math.min(Math.max(stars, 0), 5));
+    }
+
+    // Si c'est un nombre simple, le traiter directement
+    const numValue = parseFloat(value);
+    if (!isNaN(numValue)) {
+      const stars = Math.round(numValue / 2);
+      return "★".repeat(Math.min(Math.max(stars, 0), 5));
+    }
+
+    return value;
+  };
+
   return (
     <>
-      {/* Vidéo de fond avec optimisations Remotion */}
+      {/* Vidéo de fond */}
       <AbsoluteFill>
-        <OffthreadVideo
-          src={videoBg.src}
-          volume={0} // Désactive l'audio pour les vidéos background
-          muted // Double sécurité pour l'audio
-          onError={(error: Error) =>
-            console.error("Erreur vidéo background:", error)
-          } // Gestion d'erreur
-          toneMapped={false} // Améliore les performances
-          showInTimeline={false} // Masque dans la timeline du studio
-          style={{
-            width: "100%",
-            height: "100%",
-            objectFit: "cover",
-          }}
-        />
+        <OffthreadVideo src={videoBg.src} />
       </AbsoluteFill>
 
       {/* Contenu principal - dans AbsoluteFill pour remplir toute la composition */}
@@ -134,12 +147,7 @@ export const JobIntro = ({
             }}
           >
             <Img
-              src={staticFile("raw-removebg-preview.png")}
-              onError={() =>
-                console.error(
-                  "Erreur de chargement du sticker raw-removebg-preview.png"
-                )
-              }
+              src={staticFile("spotIntro.png")}
               style={{
                 width: "600px", // x2 plus grand (300px → 600px)
                 height: "auto",
@@ -153,27 +161,28 @@ export const JobIntro = ({
             <Today />
           </Sequence>
 
-          {/* Container pour les Info jobs */}
+          {/* Container pour les Info spots */}
           <div className="flex flex-col gap-6 w-full max-w-4xl">
-            {jobs.map((job, jobIdx) => {
-              const titleDelay = infoBaseDelay + jobIdx * 2 * infoDelayStep;
+            {spots.map((spot, spotIdx) => {
+              const titleDelay = infoBaseDelay + spotIdx * 2 * infoDelayStep;
               const salaryDelay =
-                infoBaseDelay + (jobIdx * 2 + 1) * infoDelayStep;
+                infoBaseDelay + (spotIdx * 2 + 1) * infoDelayStep;
 
-              const titleTransform = infoSlideTransforms[jobIdx * 2];
-              const salaryTransform = infoSlideTransforms[jobIdx * 2 + 1];
+              const titleTransform = infoSlideTransforms[spotIdx * 2];
+              const salaryTransform = infoSlideTransforms[spotIdx * 2 + 1];
 
-              // 🚀 ALTERNANCE: Calculer l'index global pour une vraie alternance
-              const titleGlobalIndex = jobIdx * 2;
-              const salaryGlobalIndex = jobIdx * 2 + 1;
+              // ALTERNANCE: Calculer l'index global pour une vraie alternance
+              const titleGlobalIndex = spotIdx * 2;
+              const salaryGlobalIndex = spotIdx * 2 + 1;
 
+              console.log(spot.salary, "salary");
               return (
-                <div key={jobIdx} className="flex flex-col gap-4">
-                  {/* Titre du job */}
+                <div key={spotIdx} className="flex flex-col gap-4">
+                  {/* Titre du spot */}
                   {frame >= titleDelay && (
                     <Sequence
                       from={titleDelay}
-                      name={`Job-${jobIdx + 1}-Title`}
+                      name={`Spot-${spotIdx + 1}-Title`}
                       style={{
                         position: "relative",
                         transform: titleTransform,
@@ -185,17 +194,17 @@ export const JobIntro = ({
                       }}
                     >
                       <Info
-                        value={job.title}
+                        value={spot.title}
                         isAlternate={titleGlobalIndex % 2 === 1}
                       />
                     </Sequence>
                   )}
 
-                  {/* Salaire du job */}
+                  {/* Coût du spot */}
                   {frame >= salaryDelay && (
                     <Sequence
                       from={salaryDelay}
-                      name={`Job-${jobIdx + 1}-Salary`}
+                      name={`Spot-${spotIdx + 1}-Cost`}
                       style={{
                         position: "relative",
                         transform: salaryTransform,
@@ -207,7 +216,7 @@ export const JobIntro = ({
                       }}
                     >
                       <Info
-                        value={job.salary}
+                        value={convertToStars(spot.salary)}
                         isAlternate={salaryGlobalIndex % 2 === 1}
                         isSalary={true}
                       />

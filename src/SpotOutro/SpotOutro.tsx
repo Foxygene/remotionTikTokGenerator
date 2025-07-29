@@ -16,11 +16,11 @@ const fontStyle: CSSProperties = {
   willChange: "opacity",
 };
 
-export const JobOutro = ({ videoBg }: { videoBg: StaticFile }) => {
+export const SpotOutro = ({ videoBg }: { videoBg: StaticFile }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
-  // 🚀 ANIMATION: Apparition du sticker avec un effet de zoom/fade
+  // ANIMATION: Apparition du sticker avec un effet de zoom/fade
   const stickerSpring = spring({
     fps,
     frame: frame,
@@ -31,7 +31,7 @@ export const JobOutro = ({ videoBg }: { videoBg: StaticFile }) => {
     },
   });
 
-  // 🚀 OPTIMISATION: Styles CSS optimisés pour les performances
+  // OPTIMISATION: Styles CSS optimisés pour les performances
   const containerStyle: CSSProperties = {
     ...fontStyle,
     // Force l'accélération GPU
@@ -56,23 +56,9 @@ export const JobOutro = ({ videoBg }: { videoBg: StaticFile }) => {
 
   return (
     <>
-      {/* Vidéo de fond avec optimisations Remotion */}
+      {/* Vidéo de fond */}
       <AbsoluteFill>
-        <OffthreadVideo
-          src={videoBg.src}
-          volume={0} // Désactive l'audio pour les vidéos background
-          muted // Double sécurité pour l'audio
-          onError={(error: Error) =>
-            console.error("Erreur vidéo background:", error)
-          } // Gestion d'erreur
-          toneMapped={false} // Améliore les performances
-          showInTimeline={false} // Masque dans la timeline du studio
-          style={{
-            width: "100%",
-            height: "100%",
-            objectFit: "cover",
-          }}
-        />
+        <OffthreadVideo src={videoBg.src} />
       </AbsoluteFill>
 
       {/* Contenu principal - dans AbsoluteFill pour remplir toute la composition */}
@@ -83,12 +69,7 @@ export const JobOutro = ({ videoBg }: { videoBg: StaticFile }) => {
         >
           <div style={stickerStyle}>
             <Img
-              src={staticFile("5878a582-4e89-4652-959e-53731bd0aa99.png")}
-              onError={() =>
-                console.error(
-                  "Erreur de chargement du sticker 5878a582-4e89-4652-959e-53731bd0aa99.png"
-                )
-              }
+              src={staticFile("spotOutro.png")}
               style={{
                 width: "2400px", // x6 plus grand (400px → 2400px, soit x2 de la taille actuelle)
                 height: "auto",

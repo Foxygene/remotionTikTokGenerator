@@ -77,10 +77,27 @@ export const JobProfile = ({
     return `translate3d(${slideX}%, 0, 0)`;
   });
 
+  // Gestion d'erreur pour la vidéo
+  const handleVideoError = (error: Error) => {
+    console.error("Erreur de chargement de la vidéo background:", error);
+  };
+
   return (
     <>
       <AbsoluteFill>
-        <OffthreadVideo src={videoBg.src} />
+        <OffthreadVideo
+          src={videoBg.src}
+          volume={0} // Désactive l'audio pour les vidéos background
+          muted // Double sécurité pour l'audio
+          onError={handleVideoError} // Gestion d'erreur
+          toneMapped={false} // Améliore les performances
+          showInTimeline={false} // Masque dans la timeline du studio
+          style={{
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+          }}
+        />
       </AbsoluteFill>
       {/* Contenu principal - dans AbsoluteFill pour remplir toute la composition */}
       <AbsoluteFill>

@@ -102,6 +102,11 @@ export const JobTitle = ({ videoBg, jobs }: JobTitleProps) => {
         >
           <Img
             src={staticFile("raw-removebg-preview.png")}
+            onError={() =>
+              console.error(
+                "Erreur de chargement du sticker raw-removebg-preview.png"
+              )
+            }
             className="w-48 h-48 object-contain"
             style={{
               filter: "drop-shadow(0 10px 20px rgba(0, 0, 0, 0.3))",

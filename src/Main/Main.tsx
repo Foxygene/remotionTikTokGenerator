@@ -10,6 +10,35 @@ export const Main = (props: {
   randomVideos: StaticFile[];
   jobs: z.infer<typeof jobSchema>[];
 }) => {
+  // Fonction pour convertir les textes rating en étoiles (même logique que SpotInfo)
+  const convertRatingToStars = (value: string): string => {
+    // Si c'est déjà au format "rating-main-score rating r3", extraire le nombre
+    if (value.includes("rating r")) {
+      const match = value.match(/r(\d+)/);
+      if (match) {
+        const numStars = parseInt(match[1]);
+        return "★".repeat(Math.min(Math.max(numStars, 0), 5));
+      }
+    }
+
+    // Si c'est un format comme "8.5/10", convertir
+    if (value.includes("/10")) {
+      const numValue = parseFloat(value.replace("/10", ""));
+      const stars = Math.round(numValue / 2); // Convertir sur 5 étoiles
+      return "★".repeat(Math.min(Math.max(stars, 0), 5));
+    }
+
+    // Si c'est un nombre simple, le traiter directement
+    const numValue = parseFloat(value);
+    if (!isNaN(numValue)) {
+      const stars = Math.round(numValue / 2);
+      return "★".repeat(Math.min(Math.max(stars, 0), 5));
+    }
+
+    // Si ce n'est pas un rating, retourner tel quel
+    return value;
+  };
+
   return (
     <>
       {/* 🎵 MUSIQUE DE FOND: Joue pendant toute la durée de la vidéo */}
@@ -22,7 +51,7 @@ export const Main = (props: {
             videoBg={props.randomVideos[0]}
             jobs={props.jobs.slice(0, 3).map((job) => ({
               title: job.Title,
-              salary: job.salary,
+              salary: convertRatingToStars(job.salary),
             }))}
           />
         </Series.Sequence>

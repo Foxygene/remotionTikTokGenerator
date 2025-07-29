@@ -2,6 +2,7 @@
 // npx remotion render <entry-file> HelloWorld out/video.mp4
 
 import { registerRoot } from "remotion";
+import { SpotRemotionRoot } from "./SpotRoot";
 import { RemotionRoot } from "./Root";
 
 registerRoot(RemotionRoot);
