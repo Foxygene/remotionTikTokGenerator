@@ -1,4 +1,3 @@
-import { interpolate, useCurrentFrame } from "remotion";
 import type { CSSProperties } from "react";
 import { useDecodedText } from "../utils/htmlDecode";
 

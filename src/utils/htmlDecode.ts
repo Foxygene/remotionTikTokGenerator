@@ -100,7 +100,7 @@ export function decodeHtmlEntitiesInObject<T extends Record<string, any>>(
     return obj;
   }
 
-  const decoded = { ...obj };
+  const decoded: Record<string, any> = { ...obj };
 
   Object.keys(decoded).forEach((key) => {
     const value = decoded[key];
@@ -108,7 +108,7 @@ export function decodeHtmlEntitiesInObject<T extends Record<string, any>>(
     if (typeof value === "string") {
       decoded[key] = decodeHtmlEntities(value);
     } else if (Array.isArray(value)) {
-      decoded[key] = value.map((item) =>
+      decoded[key] = (value as any[]).map((item) =>
         typeof item === "string"
           ? decodeHtmlEntities(item)
           : typeof item === "object"
@@ -116,11 +116,11 @@ export function decodeHtmlEntitiesInObject<T extends Record<string, any>>(
           : item
       );
     } else if (typeof value === "object" && value !== null) {
-      decoded[key] = decodeHtmlEntitiesInObject(value);
+      decoded[key] = decodeHtmlEntitiesInObject(value as Record<string, any>);
     }
   });
 
-  return decoded;
+  return decoded as T;
 }
 
 /**

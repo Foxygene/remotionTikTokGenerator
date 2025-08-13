@@ -1,0 +1,17 @@
+# .cursorignore
+# This file tells Cursor which files/folders to ignore for AI code generation and search.
+# Add patterns here (one per line), similar to .gitignore.
+
+node_modules/
+dist/
+build/
+coverage/
+*.log
+.DS_Store
+.vscode/
+.idea/
+*.sqlite
+*.db
+*.csv
+*.bak
+# End of .cursorignore

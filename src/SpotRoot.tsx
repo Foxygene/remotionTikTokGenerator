@@ -7,15 +7,21 @@ import { decodeHtmlEntitiesInObject } from "./utils/htmlDecode";
 
 type Spot = z.infer<typeof spotSchema>;
 
-// Spot par défaut pour tester
+// Spot par défaut pour tester (adapté au nouveau schéma)
 const spotWithSpecialChars: Spot = {
   Id: 1,
-  name: "Amsterdam &amp; Co-working Space", // Test: &amp; → &
-  country: "Netherlands &copy;", // Test: &copy; → ©
-  cost_usd: 2500,
-  internet_speed: 100,
-  overall_rating: 8.5,
-  temperature: 15,
+  name: "Amsterdam &amp; Co-working Space",
+  country: "Netherlands &copy;",
+  cost_eur: 2500,
+  star_rating: 4,
+  temparature_C: 15,
+  pros: "Very safe | Fast internet | Very affordable | Friendly people | Great food",
+  cons: "Expensive taxis | Rainy winters | Crowded in summer | High rent | Noisy nightlife",
+  hotel_m: 1200,
+  diner: 15,
+  mobile_data: 20,
+  taxi_price: 12,
+  airbnb_m: 1500,
 };
 
 // Décoder le spot par défaut
@@ -26,32 +32,23 @@ const allVideoFiles = getStaticFiles().filter((file) =>
   file.name.endsWith("mp4")
 );
 
-// Utiliser les 11 vidéos disponibles sans filtre
+// Préférer les vidéos 1080p stables en preview
 const getOptimizedVideoFiles = () => {
-  // Prendre TOUTES les vidéos disponibles
-  const allVideos = allVideoFiles;
-
-  // Catégorisation pour information (logs)
-  const hdVideos = allVideos.filter(
-    (file) =>
-      file.name.includes("hd_1080_1920") || file.name.includes("_1080_1920_")
+  const hdVideos = allVideoFiles.filter(
+    (file) => file.name.includes("hd_1080_1920") || file.name.includes("_1080_1920_")
   );
 
-  const uhd3840Videos = allVideos.filter((file) =>
-    file.name.includes("uhd_2160_3840")
+  if (hdVideos.length > 0) {
+    console.log(`📹 VIDÉOS (SPOT): HD uniquement (${hdVideos.length})`);
+    return hdVideos;
+  }
+
+  // Fallback: exclure explicitement les UHD qui causent des soucis de parsing en dev
+  const nonUhd = allVideoFiles.filter(
+    (file) => !file.name.includes("uhd_2160_3840") && !file.name.includes("uhd_2160_4096")
   );
-
-  const uhd4096Videos = allVideos.filter((file) =>
-    file.name.includes("uhd_2160_4096")
-  );
-
-  console.log(`📹 TOUTES LES VIDÉOS UTILISÉES (SPOT):`);
-  console.log(`📹 Total disponible: ${allVideos.length}`);
-  console.log(`📹 HD (1080p): ${hdVideos.length} vidéos`);
-  console.log(`📹 UHD 3840: ${uhd3840Videos.length} vidéos`);
-  console.log(`📹 UHD 4096: ${uhd4096Videos.length} vidéos`);
-
-  return allVideos;
+  console.log(`📹 VIDÉOS (SPOT): fallback non-UHD (${nonUhd.length})`);
+  return nonUhd.length > 0 ? nonUhd : allVideoFiles;
 };
 
 const videoFiles = getOptimizedVideoFiles();
@@ -105,48 +102,57 @@ export const SpotRemotionRoot: React.FC = () => {
       <Composition
         id="SpotMain"
         component={SpotMain}
-        // Durée ajustée pour SpotIntro + 3 SpotProfiles + SpotOutro
-        // SpotIntro: 150 (5s) + 3 SpotProfiles: 1350 (45s) + SpotOutro: 450 (15s) = 1950 frames
-        durationInFrames={1950}
+        // Nouveau timing: 4 slides standardisés (8s chacun) + Outro (8s) = 240*4 + 240 = 1200
+        durationInFrames={1200}
         fps={30}
         width={1080}
         height={1920}
-        // Schema pour 3 spots au lieu d'1
+        // Nouveau schema: 1 spot (mais on garde un array pour Intro qui peut en afficher 3)
         schema={z.object({
-          spots: z.array(spotSchema), // Array de 3 spots
-          randomVideos: z.array(staticFileSchema), // Array de 3 vidéos avec bon type
+          spots: z.array(spotSchema),
+          randomVideos: z.array(staticFileSchema),
         })}
         defaultProps={{
-          spots: [spot, spot, spot], // 3 spots par défaut avec caractères spéciaux décodés
-          randomVideos: getRandomVideos(5), // 5 vidéos random uniques (SpotIntro + 3 SpotProfile + SpotOutro)
+          spots: [spot, spot, spot],
+          randomVideos: getRandomVideos(6), // Intro + 4 slides + Outro
         }}
         calculateMetadata={async ({ props }) => {
-          const data = await fetch(
-            `https://crm.ngsylvain.com/api/v2/tables/mirilc3dbif4c4t/records?offset=0&limit=25&where=&viewId=vwcvpa5i17ivyplz`,
-            {
-              headers: {
-                "xc-token": "IDHIUcZvNphX3WGbI0C_bKTw3Vb2b-B3KiCU9985", // Remplace par ton token réel
-              },
+          const XC_TOKEN = process.env.XC_TOKEN;
+
+          let decodedSpots: Spot[] = [spot];
+          try {
+            if (!XC_TOKEN) {
+              console.warn(
+                "XC_TOKEN manquant. Utilisation du spot local par défaut pour le rendu."
+              );
+            } else {
+              const data = await fetch(
+                `https://crm.ngsylvain.com/api/v2/tables/m45i3ovmckjnnax/records?offset=0&limit=25&where=&viewId=vw4al89z9njfvrx0`,
+                {
+                  headers: {
+                    "xc-token": XC_TOKEN,
+                  },
+                }
+              );
+              const json = await data.json();
+              const selectedForIntro = getUniqueRandomSpots(json.list, 3);
+              decodedSpots = [...selectedForIntro].map((s) =>
+                decodeHtmlEntitiesInObject(s)
+              );
             }
-          );
-          const json = await data.json();
+          } catch (err: any) {
+            console.warn(
+              `Échec de la récupération des spots distants. Fallback local. Détail: ${err?.message || err}`
+            );
+          }
 
-          // Récupérer 3 spots random uniques
-          const randomSpots = getUniqueRandomSpots(json.list, 3);
-
-          // Décoder les entités HTML dans tous les spots
-          const decodedSpots = randomSpots.map((spot) =>
-            decodeHtmlEntitiesInObject(spot)
-          );
-
-          // Récupérer 5 vidéos random uniques (optimisées mémoire)
-          const randomVideos = getRandomVideos(5);
+          const randomVideos = getRandomVideos(6);
 
           return {
             props: {
               ...props,
-              spots: decodedSpots, // 3 spots uniques avec caractères spéciaux décodés
-              randomVideos: randomVideos, // 4 vidéos uniques optimisées
+              spots: decodedSpots.length ? decodedSpots : [spot],
+              randomVideos,
             },
           };
         }}

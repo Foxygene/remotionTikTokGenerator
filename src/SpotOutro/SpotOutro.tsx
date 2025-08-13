@@ -1,3 +1,4 @@
+import React, { useState } from "react";
 import {
   spring,
   useCurrentFrame,
@@ -7,7 +8,37 @@ import {
   AbsoluteFill,
   Img,
   staticFile,
+  Video,
+  getRemotionEnvironment,
 } from "remotion";
+
+const BgVideo: React.FC<{ src: string }> = ({ src }) => {
+  const [errored, setErrored] = useState(false);
+  if (errored) {
+    return (
+      <div
+        style={{
+          background:
+            "linear-gradient(135deg, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.4) 100%)",
+          width: "100%",
+          height: "100%",
+        }}
+      />
+    );
+  }
+  const isRendering = getRemotionEnvironment().isRendering;
+  const supportsRange = src.startsWith("/");
+  if (isRendering || !supportsRange) {
+    return (
+      <OffthreadVideo
+        pauseWhenBuffering
+        src={src}
+        onError={() => setErrored(true)}
+      />
+    );
+  }
+  return <Video loop muted src={src} onError={() => setErrored(true)} />;
+};
 import type { CSSProperties } from "react";
 
 const fontStyle: CSSProperties = {
@@ -58,7 +89,7 @@ export const SpotOutro = ({ videoBg }: { videoBg: StaticFile }) => {
     <>
       {/* Vidéo de fond */}
       <AbsoluteFill>
-        <OffthreadVideo src={videoBg.src} />
+        <BgVideo src={videoBg.src} />
       </AbsoluteFill>
 
       {/* Contenu principal - dans AbsoluteFill pour remplir toute la composition */}

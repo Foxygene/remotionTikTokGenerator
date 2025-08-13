@@ -4,7 +4,7 @@
   "description": "",
   "main": "src/index.ts",
   "scripts": {
-    "dev": "remotion studio",
+    "dev": "remotion studio --env-file=.env",
     "build": "remotion render Main out/Main.mp4",
     "build-unique": "remotion render Main out/TikTok-$(date +%Y%m%d-%H%M%S).mp4",
     "upgrade": "remotion upgrade",
@@ -16,7 +16,7 @@
     "job": "node generate-video.js",
     "job-safe": "node generate-video.js --safe",
     "job-optimized": "node generate-video.js --optimized",
-    "spot": "node generate-spot-video.js",
+    "start": "node generate-spot-video.js --env-file=.env",
     "spot-safe": "node generate-spot-video.js --safe",
     "spot-optimized": "node generate-spot-video.js --optimized",
     "generate": "node generate-video.js",

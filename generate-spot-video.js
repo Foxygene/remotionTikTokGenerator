@@ -27,8 +27,13 @@ const generateTimestamp = () => {
 
 // Fonction pour générer un nom de fichier unique pour spot
 const generateUniqueFilename = () => {
-  const timestamp = generateTimestamp();
-  return `TikTok-Spot-${timestamp}.mp4`;
+  const now = new Date();
+  const day = String(now.getDate()).padStart(2, "0");
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const hours = String(now.getHours()).padStart(2, "0");
+  const minutes = String(now.getMinutes()).padStart(2, "0");
+
+  return `spot-${day}-${month}-${hours}-${minutes}.mp4`;
 };
 
 // Créer le répertoire out s'il n'existe pas
@@ -42,12 +47,61 @@ const args = process.argv.slice(2);
 const isOptimized = args.includes("--optimized");
 const isSafe = args.includes("--safe");
 
+// Résoudre un fichier .env à charger par Remotion
+const argWithEnvFile = args.find((a) => a.startsWith("--env-file="));
+const envFileFromArg = argWithEnvFile ? argWithEnvFile.split("=")[1] : null;
+const envFileFromEnv = process.env.REMOTION_ENV_FILE || process.env.ENV_FILE;
+const defaultEnvFile = path.join(__dirname, ".env");
+const resolvedEnvFile = [envFileFromArg, envFileFromEnv, defaultEnvFile]
+  .filter(Boolean)
+  .find((p) => {
+    try {
+      return fs.existsSync(p);
+    } catch (_) {
+      return false;
+    }
+  });
+
+// Charger manuellement les variables du .env dans le process courant
+const loadEnvFileIntoProcess = (filePath) => {
+  try {
+    const content = fs.readFileSync(filePath, "utf8");
+    content.split(/\r?\n/).forEach((line) => {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith("#")) return;
+      const exportPrefix = trimmed.startsWith("export ") ? "export " : "";
+      const withoutExport = exportPrefix ? trimmed.slice(7) : trimmed;
+      const match = withoutExport.match(/^([A-Za-z_][A-Za-z0-9_]*)=(.*)$/);
+      if (!match) return;
+      const key = match[1];
+      let value = match[2];
+      if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
+        value = value.slice(1, -1);
+      }
+      if (process.env[key] === undefined) {
+        process.env[key] = value;
+      }
+    });
+  } catch (_) {
+    // ignore
+  }
+};
+
+if (resolvedEnvFile) {
+  loadEnvFileIntoProcess(resolvedEnvFile);
+}
+
 // Générer le nom de fichier unique
 const filename = generateUniqueFilename();
 const outputPath = path.join("out", filename);
 
 // Construire la commande Remotion pour les vidéos spot
 let command = `npx remotion render src/index-spot.ts SpotMain "${outputPath}"`;
+
+// Ajouter le --env-file si disponible
+if (resolvedEnvFile) {
+  command += ` --env-file="${resolvedEnvFile}"`;
+}
 
 // Ajouter les options selon les arguments
 if (isOptimized || isSafe) {
@@ -60,6 +114,10 @@ if (isSafe) {
 
 console.log(`🎬 Génération de la vidéo TikTok SPOT...`);
 console.log(`📁 Fichier de sortie: ${outputPath}`);
+if (resolvedEnvFile) {
+  console.log(`🌱 Fichier d'environnement chargé: ${resolvedEnvFile}`);
+}
+console.log(`🔐 XC_TOKEN présent: ${process.env.XC_TOKEN ? "oui" : "non"}`);
 console.log(`⚙️  Commande: ${command}`);
 console.log("");
 

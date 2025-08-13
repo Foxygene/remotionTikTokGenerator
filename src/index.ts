@@ -3,6 +3,5 @@
 
 import { registerRoot } from "remotion";
 import { SpotRemotionRoot } from "./SpotRoot";
-import { RemotionRoot } from "./Root";
 
-registerRoot(RemotionRoot);
+registerRoot(SpotRemotionRoot);

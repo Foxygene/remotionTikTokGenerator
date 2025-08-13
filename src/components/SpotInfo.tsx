@@ -34,11 +34,17 @@ export const SpotInfo = ({
       return "★".repeat(Math.min(Math.max(stars, 0), 5));
     }
 
-    // Si c'est un nombre simple, le traiter directement
+    // Si c'est un nombre simple
     const numValue = parseFloat(value);
     if (!isNaN(numValue)) {
-      const stars = Math.round(numValue / 2);
-      return "★".repeat(Math.min(Math.max(stars, 0), 5));
+      // Si l'échelle est déjà sur 5 (<=5), arrondir à l'entier supérieur (évite de manquer 1 étoile)
+      if (numValue <= 5) {
+        const stars5 = Math.ceil(numValue);
+        return "★".repeat(Math.min(Math.max(stars5, 0), 5));
+      }
+      // Sinon, on suppose une échelle /10 → convertir sur 5 et arrondir au supérieur
+      const stars10 = Math.ceil(numValue / 2);
+      return "★".repeat(Math.min(Math.max(stars10, 0), 5));
     }
 
     return value;
@@ -49,9 +55,14 @@ export const SpotInfo = ({
     return label.endsWith(":") ? label : `${label}:`;
   };
 
-  // Couleurs alternées entre rose et bleu ciel
-  const labelBgColor = isAlternate ? "bg-sky-400" : "bg-sky-300";
-  const valueBgColor = isAlternate ? "bg-sky-300" : "bg-pink-300";
+  // Couleurs pastel et logique d'alternance
+  const hasLabel = decodedLabel !== undefined;
+  const labelBgColor = "bg-sky-300"; // bleu pastel pour labels
+  const valueBgColor = hasLabel
+    ? "bg-pink-300" // valeurs en rose pastel quand label présent (slides 1 & 2)
+    : isAlternate
+    ? "bg-sky-300" // alternance bleu
+    : "bg-pink-300"; // alternance rose
 
   // Styles optimisés pour les performances
   const containerStyle: CSSProperties = {
